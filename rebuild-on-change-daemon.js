@@ -2,8 +2,10 @@
 // - `entprellen` (when using vim it will spawn to events on saving) so we need a 1 second event window normalizer
 // - package with nix
 // - package as nix service
-// - push to github
-// - fix bug: when using  readlinkFunction it won't recutn a correct drv path but instead the readlinkFunction result which is wrong
+//  - if 'nixos-rebuild' switch is called from daemon it will stop rebuild-on-change-daemon.service and it seems to build a different system?! why?
+
+// not urgent (optimization):
+// - fix bug: when using readlinkFunction it won't recutn a correct drv path but instead the readlinkFunction result which is wrong
 // - fix /var/run/current-system check, nix-build actually always outputs something else than nixos-rebuild switch, why?
 
 const { spawn } = require('child_process');
@@ -47,21 +49,21 @@ function update() {
   };
 
   // in /var/run/current-system one can see which is the current build in use
-  function readlinkFunction(data) {
-    return new Promise(function(resolve, reject) {
-      var readlink = spawn('readlink', [ '/var/run/current-system' ]);
-      readlink.stdout.on('data', function(data) {
-        var link= (""+data);
-        console.log('readlink points to ' + link);
-      });
-      readlink.stderr.on('data', function(data) { process.stdout.write('readlink stderr: ' + data); });
-      readlink.on('close', function(code) {
-        console.log('readlink closing code: ' + code);
-        // just pass the drv on to nix-store...
-        resolve(data); 
-      });
-    });
-  };
+  //function readlinkFunction(data) {
+  //  return new Promise(function(resolve, reject) {
+  //    var readlink = spawn('readlink', [ '/var/run/current-system' ]);
+  //    readlink.stdout.on('data', function(data) {
+  //      var link= (""+data);
+  //      console.log('readlink points to ' + link);
+  //    });
+  //    readlink.stderr.on('data', function(data) { process.stdout.write('readlink stderr: ' + data); });
+  //    readlink.on('close', function(code) {
+  //      console.log('readlink closing code: ' + code);
+  //      // just pass the drv on to nix-store...
+  //      resolve(data); 
+  //    });
+  //  });
+  //};
 
   // this nix-store call evaluates the drv which basically starts the downloading/compiliation of the whole system
   function storeFunction(data) { 
@@ -98,13 +100,13 @@ function update() {
     .then(data => storeFunction(data), function(data) { console.log("nix-instantiate error: " + data); })
     .then(function() 
       {
-        //nixosRebuild = spawn('nixos-rebuild', [ 'switch' ]);
-        //nixosRebuild.stdout.on('data', function(data) { process.stdout.write('nixos-rebuild stdout: ' + data); });
-        //nixosRebuild.stderr.on('data', function(data) { process.stdout.write('nixos-rebuild stderr: ' + data); });
-        //nixosRebuild.on('close', function(code) { 
-        //  console.log('nixos-rebuild closing code: ' + code); 
-        //   nixosRebuild = null;
-        //});
+        nixosRebuild = spawn('nixos-rebuild', [ 'switch' ]);
+        nixosRebuild.stdout.on('data', function(data) { process.stdout.write('nixos-rebuild stdout: ' + data); });
+        nixosRebuild.stderr.on('data', function(data) { process.stdout.write('nixos-rebuild stderr: ' + data); });
+        nixosRebuild.on('close', function(code) { 
+          console.log('nixos-rebuild closing code: ' + code); 
+           nixosRebuild = null;
+        });
       }, function() {
         console.log("nix-store error");
       }
