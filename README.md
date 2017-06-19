@@ -1,6 +1,6 @@
 # rebuild-on-change-daemon
 
-With the `rebuild-on-change-daemon` a nixos-rebuild is issued when a change to `/etc/nixos/configuration.nix` is registered via `inotifywatch`.
+with the `rebuild-on-change-daemon` a nixos-rebuild is issued when a change to `/etc/nixos/configuration.nix` is registered via `inotifywatch`.
 
 # using the daemon
 
@@ -22,7 +22,7 @@ in case you want to use a more recent revision of `rebuild-on-change-daemon` jus
 
     journalctl  -u rebuild-on-change-daemon.service -f -o cat
 
-# hacking & monitoring of cha
+# hacking
 
 as root:
 
