@@ -9,7 +9,6 @@ let
   rebuild-on-change-daemon = pkgs.stdenv.mkDerivation {
     name = "rebuild-on-change-daemon";
     src = ./.;
-    buildInputs = [ pkgs.inotify-tools ];
     installPhase = ''
       mkdir $out
       cp rebuild-on-change-daemon.js $out/
@@ -21,10 +20,11 @@ in
   };
 
   config = lib.mkIf true {
+    environment.systemPackages = [ pkgs.inotify-tools ];
     systemd.services.rebuild-on-change-daemon = {
       description   = "rebuild-on-change-daemon service";
-      #wantedBy      = [ "multi-user.target" ];
-      #after         = [ "network.target" ];
+      wantedBy      = [ "multi-user.target" ];
+      after         = [ "network.target" ];
 
       restartIfChanged = false;
       unitConfig.X-StopOnRemoval = false;
